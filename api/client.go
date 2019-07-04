@@ -12,6 +12,7 @@ type Client struct {
 	BaseURL string
 }
 
+// Get is a goroutine which performs a GET request to the given endpoint.
 func (client *Client) Get(endpoint string, result chan<- Response) {
 
 	fullURL, err := client.getURL(endpoint)
