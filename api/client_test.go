@@ -11,7 +11,7 @@ func TestGet(t *testing.T) {
 	go client.Get("/todos/1", ch)
 
 	response := <-ch
-	
+
 	if response.Error != nil {
 		t.Error(response.Error)
 	}
