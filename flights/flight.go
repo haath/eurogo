@@ -11,11 +11,11 @@ import (
 // It does not represent airfare available for purchase, but a part of
 // such a trip, which may consist of one or more flights or other transit.
 type Flight struct {
-	From    string
-	To      string
-	Airline string
-	Departs time.Time
-	Arrives time.Time
+	From    string    `json:"from"`
+	To      string    `json:"to"`
+	Airline string    `json:"airline"`
+	Departs time.Time `json:"departs"`
+	Arrives time.Time `json:"arrives"`
 }
 
 // GetDuration returns the duration of the flight.
