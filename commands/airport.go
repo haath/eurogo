@@ -19,11 +19,7 @@ func (cmd *AirportCommand) Execute(args []string) error {
 
 	query := cmd.Args.Query
 
-	airports, err := provider.SearchAirports(query)
-
-	if err != nil {
-		return err
-	}
+	airports := provider.SearchAirportsSync(query)
 
 	for _, airport := range airports {
 

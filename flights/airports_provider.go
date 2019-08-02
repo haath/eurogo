@@ -1,5 +1,7 @@
 package flights
 
 type AirportsProvider interface {
-	SearchAirports(query string) ([]*Airport, error)
+	SearchAirports(query string, airports chan<- []*Airport)
+
+	SearchAirportsSync(query string) []*Airport
 }

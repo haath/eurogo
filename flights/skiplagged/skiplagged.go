@@ -2,6 +2,7 @@ package skiplagged
 
 import (
 	"encoding/json"
+	"eurogo/shared"
 	"eurogo/api"
 	"eurogo/flights"
 	"time"
@@ -25,13 +26,10 @@ func SkiplaggedFlightsProvider() flights.FlightsProvider {
 	return &skiplaggedProvider{}
 }
 
-func (this *skiplaggedProvider) SearchFlight(from string, to string, departDate time.Time) ([]*flights.FlightTrip, error) {
+func (this *skiplaggedProvider) SearchFlight(from string, to string, departDate time.Time, flights chan<- []*flights.FlightTrip) {
 
 	request, err := api.NewRequest(APIBaseURL)
-
-	if err != nil {
-		return nil, err
-	}
+	shared.ErrorHandler(err)
 
 	request.Endpoint(APISearchEndpoint)
 	request.Set("from", from)
@@ -43,14 +41,18 @@ func (this *skiplaggedProvider) SearchFlight(from string, to string, departDate 
 	go request.Get(channel)
 
 	response := <-channel
-
-	if response.Error != nil {
-		return nil, response.Error
-	}
+	shared.ErrorHandler(response.Error)
 
 	var skiplaggedResponse skiplaggedSearchResponse
 
 	err = json.Unmarshal([]byte(response.Body), &skiplaggedResponse)
 
-	return skiplaggedResponse.getFlights(), err
+	flights <- skiplaggedResponse.getFlights()
+}
+
+func (this *skiplaggedProvider) SearchFlightSync(from string, to string, departDate time.Time) []*flights.FlightTrip {
+
+	flights := make(chan []*flights.FlightTrip)
+	go this.SearchFlight(from, to, departDate, flights)
+	return <-flights
 }

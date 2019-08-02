@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"eurogo/api"
 	"eurogo/flights"
+	"eurogo/shared"
 	"net/url"
 )
 
@@ -21,13 +22,10 @@ func SkyscannerAirportsProvider() flights.AirportsProvider {
 	return &skyscannerProvider{}
 }
 
-func (skyscanner *skyscannerProvider) SearchAirports(query string) ([]*flights.Airport, error) {
+func (skyscanner *skyscannerProvider) SearchAirports(query string, airports chan<- []*flights.Airport) {
 
 	request, err := api.NewRequest(APIBaseURL)
-
-	if err != nil {
-		return nil, err
-	}
+	shared.ErrorHandler(err)
 
 	endpoint := APIAirportsEndpoint + url.QueryEscape(query)
 
@@ -39,13 +37,18 @@ func (skyscanner *skyscannerProvider) SearchAirports(query string) ([]*flights.A
 
 	response := <-channel
 
-	if response.Error != nil {
-		return nil, response.Error
-	}
+	shared.ErrorHandler(response.Error)
 
 	var skyscannerResponse skyscannerAirportsResponse
 
 	err = json.Unmarshal([]byte(response.Body), &skyscannerResponse)
 
-	return skyscannerResponse.getAirports(), err
+	airports <- skyscannerResponse.getAirports()
+}
+
+func (skyscanner *skyscannerProvider) SearchAirportsSync(query string) []*flights.Airport {
+
+	airports := make(chan []*flights.Airport)
+	go skyscanner.SearchAirports(query, airports)
+	return <-airports
 }
