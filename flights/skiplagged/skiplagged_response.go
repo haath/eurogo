@@ -3,6 +3,7 @@ package skiplagged
 import (
 	"eurogo/flights"
 	"eurogo/shared"
+	"math"
 )
 
 type skiplaggedSearchResponse struct {
@@ -18,9 +19,9 @@ func (resp *skiplaggedSearchResponse) getFlights() []flights.FlightTrip {
 	for _, depart := range resp.Depart {
 
 		key := depart[3].(string)
-		//price := math.Round(depart[0].([]interface{})[0].(float64) / 100)
+		price := math.Round(depart[0].([]interface{})[0].(float64) / 100)
 
-		flightTrip := flights.FlightTrip{}
+		flightTrip := flights.FlightTrip{Price: price}
 
 		legs := resp.Flights[key][0].([]interface{})
 
