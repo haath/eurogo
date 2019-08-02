@@ -5,6 +5,7 @@ import (
 	"os"
 	"time"
 
+	"eurogo/flights"
 	"eurogo/flights/skiplagged"
 
 	"github.com/jessevdk/go-flags"
@@ -18,7 +19,17 @@ func foo() {
 
 	prov := skiplagged.SkiplaggedFlightProvider()
 
-	log.Println(prov.Search("PRG", "ATH", time.Date(2019, time.October, 12, 0, 0, 0, 0, time.UTC)))
+	flightsList, err := prov.Search("PRG", "ATH", time.Date(2019, time.October, 12, 0, 0, 0, 0, time.UTC))
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	flight := flightsList[0]
+	for _, leg := range flight.Legs {
+
+		flightLeg := leg.(*flights.FlightLeg)
+	}
 }
 
 func main() {
@@ -37,4 +48,6 @@ func main() {
 	if err != nil {
 		os.Exit(1)
 	}
+
+	foo()
 }
