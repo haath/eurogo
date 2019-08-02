@@ -13,6 +13,9 @@ const APIBaseURL string = "https://skiplagged.com/"
 // APISearchEndpoint is the endpoint to the flight search.
 const APISearchEndpoint string = "/api/search.php"
 
+// APIAirportsEndpoint is the endpoint to the airport search.
+const APIAirportsEndpoint string = "/api/hint.php"
+
 type skiplaggedProvider struct {
 }
 
@@ -22,7 +25,7 @@ func SkiplaggedFlightsProvider() flights.FlightsProvider {
 	return &skiplaggedProvider{}
 }
 
-func (this *skiplaggedProvider) SearchFlight(from string, to string, departDate time.Time) ([]flights.FlightTrip, error) {
+func (this *skiplaggedProvider) SearchFlight(from string, to string, departDate time.Time) ([]*flights.FlightTrip, error) {
 
 	request, err := api.NewRequest(APIBaseURL)
 

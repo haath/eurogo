@@ -1,6 +1,9 @@
 package skyscanner
 
-import "eurogo/flights"
+import (
+	"eurogo/flights"
+	"eurogo/flights/skiplagged"
+)
 
 type skyscannerAirportsResponse []skyscannerAirport
 
@@ -12,9 +15,10 @@ type skyscannerAirport struct {
 	CountryID string `json:"CountryId"`
 }
 
-func (resp *skyscannerAirportsResponse) getAirports() []flights.Airport {
+func (resp *skyscannerAirportsResponse) getAirports() []*flights.Airport {
 
-	var airports []flights.Airport
+	var airports []*flights.Airport
+	var airportNameChannels []chan string
 
 	for _, airportData := range *resp {
 
@@ -26,7 +30,17 @@ func (resp *skyscannerAirportsResponse) getAirports() []flights.Airport {
 			CountryID: airportData.CountryID,
 		}
 
-		airports = append(airports, airport)
+		airportNameChannel := make(chan string)
+		airportNameChannels = append(airportNameChannels, airportNameChannel)
+
+		go skiplagged.GetAirportName(airport.Code, airportNameChannel)
+
+		airports = append(airports, &airport)
+	}
+
+	for i, airport := range airports {
+
+		airport.Name = <-airportNameChannels[i]
 	}
 
 	return airports

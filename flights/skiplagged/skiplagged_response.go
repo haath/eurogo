@@ -12,9 +12,9 @@ type skiplaggedSearchResponse struct {
 	Duration float64                  `json:"duration"`
 }
 
-func (resp *skiplaggedSearchResponse) getFlights() []flights.FlightTrip {
+func (resp *skiplaggedSearchResponse) getFlights() []*flights.FlightTrip {
 
-	var flightList []flights.FlightTrip
+	var flightList []*flights.FlightTrip
 
 	for _, depart := range resp.Depart {
 
@@ -40,7 +40,7 @@ func (resp *skiplaggedSearchResponse) getFlights() []flights.FlightTrip {
 			flightTrip.AddLeg(&flightLeg)
 		}
 
-		flightList = append(flightList, flightTrip)
+		flightList = append(flightList, &flightTrip)
 	}
 
 	return flightList

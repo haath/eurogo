@@ -1,10 +1,10 @@
 package skyscanner
 
 import (
+	"encoding/json"
 	"eurogo/api"
 	"eurogo/flights"
 	"net/url"
-	"encoding/json"
 )
 
 // APIBaseURL is the base URL to the Skiplagged API.
@@ -21,7 +21,7 @@ func SkyscannerAirportsProvider() flights.AirportsProvider {
 	return &skyscannerProvider{}
 }
 
-func (skyscanner *skyscannerProvider) SearchAirports(query string) ([]flights.Airport, error) {
+func (skyscanner *skyscannerProvider) SearchAirports(query string) ([]*flights.Airport, error) {
 
 	request, err := api.NewRequest(APIBaseURL)
 

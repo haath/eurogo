@@ -1,5 +1,5 @@
 package flights
 
 type AirportsProvider interface {
-	SearchAirports(query string) ([]Airport, error)
+	SearchAirports(query string) ([]*Airport, error)
 }
