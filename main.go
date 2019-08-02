@@ -15,6 +15,7 @@ import (
 var Options struct {
 	// Commands
 	Airport commands.AirportCommand `command:"airport" description:"Search for an airport."`
+	Flight  commands.FlightCommand  `command:"flight" description:"Search for an one-way flight over a specified range of dates."`
 }
 
 func foo() {

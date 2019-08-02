@@ -9,17 +9,33 @@ import (
 type skiplaggedSearchResponse struct {
 	Flights  map[string][]interface{} `json:"flights"`
 	Depart   [][]interface{}          `json:"depart"`
+	Return   [][]interface{}          `json:"return"`
 	Duration float64                  `json:"duration"`
 }
 
-func (resp *skiplaggedSearchResponse) getFlights() []*flights.FlightTrip {
+func (resp *skiplaggedSearchResponse) getDepartFlights() []*flights.FlightTrip {
+
+	return resp.getFlights(false)
+}
+
+func (resp *skiplaggedSearchResponse) getReturnFlights() []*flights.FlightTrip {
+
+	return resp.getFlights(true)
+}
+
+func (resp *skiplaggedSearchResponse) getFlights(returning bool) []*flights.FlightTrip {
 
 	var flightList []*flights.FlightTrip
 
-	for _, depart := range resp.Depart {
+	flightRange := resp.Depart
+	if returning {
+		flightRange = resp.Return
+	}
 
-		key := depart[3].(string)
-		price := math.Round(depart[0].([]interface{})[0].(float64) / 100)
+	for _, flight := range flightRange {
+
+		key := flight[3].(string)
+		price := math.Round(flight[0].([]interface{})[0].(float64) / 100)
 
 		flightTrip := flights.FlightTrip{Price: price}
 

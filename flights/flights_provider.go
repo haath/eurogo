@@ -1,6 +1,8 @@
 package flights
 
-import "time"
+import (
+	"time"
+)
 
 // FlightsProvider is the interface for objects
 type FlightsProvider interface {

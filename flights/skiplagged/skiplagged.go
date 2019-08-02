@@ -2,9 +2,9 @@ package skiplagged
 
 import (
 	"encoding/json"
-	"eurogo/shared"
 	"eurogo/api"
 	"eurogo/flights"
+	"eurogo/shared"
 	"time"
 )
 
@@ -20,7 +20,7 @@ const APIAirportsEndpoint string = "/api/hint.php"
 type skiplaggedProvider struct {
 }
 
-// SkiplaggedFlightProvider instantiates a client for the Skiplagged API.
+// SkiplaggedFlightsProvider instantiates a client for the Skiplagged API.
 func SkiplaggedFlightsProvider() flights.FlightsProvider {
 
 	return &skiplaggedProvider{}
@@ -35,6 +35,7 @@ func (this *skiplaggedProvider) SearchFlight(from string, to string, departDate 
 	request.Set("from", from)
 	request.Set("to", to)
 	request.Set("depart", departDate.Format("2006-01-02"))
+	request.Set("sort", "cost")
 
 	channel := make(chan api.Response)
 
@@ -47,7 +48,7 @@ func (this *skiplaggedProvider) SearchFlight(from string, to string, departDate 
 
 	err = json.Unmarshal([]byte(response.Body), &skiplaggedResponse)
 
-	flights <- skiplaggedResponse.getFlights()
+	flights <- skiplaggedResponse.getDepartFlights()
 }
 
 func (this *skiplaggedProvider) SearchFlightSync(from string, to string, departDate time.Time) []*flights.FlightTrip {
