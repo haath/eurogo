@@ -21,11 +21,7 @@ func foo() {
 
 	prov := skiplagged.SkiplaggedFlightsProvider()
 
-	flightsList, err := prov.SearchFlight("PRG", "ATH", time.Date(2019, time.October, 12, 0, 0, 0, 0, time.UTC))
-
-	if err != nil {
-		log.Fatal(err)
-	}
+	flightsList := prov.SearchFlightSync("PRG", "ATH", time.Date(2019, time.October, 12, 0, 0, 0, 0, time.UTC))
 
 	flight := flightsList[0]
 	log.Println(flight.Price)
