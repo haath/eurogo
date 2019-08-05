@@ -32,7 +32,7 @@ func (cmd *FlightCommand) Execute(args []string) error {
 
 	if len(outboundDates) == 0 {
 
-		return fmt.Errorf("Please specify outbound dates.")
+		return fmt.Errorf("please specify outbound dates")
 	}
 
 	if len(returnDates) == 0 {

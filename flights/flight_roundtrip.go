@@ -7,6 +7,10 @@ type FlightRoundtrip struct {
 	Inbound  FlightTrip `json:"inbound"`
 }
 
+func (flightRoundtrip *FlightRoundtrip) GetDurationInSumMinutes() int {
+	return flightRoundtrip.Outbound.GetDurationInMinutes() + flightRoundtrip.Inbound.GetDurationInMinutes()
+}
+
 func (flightRoundtrip *FlightRoundtrip) GetRoundtripPrice() float64 {
 
 	if flightRoundtrip.sameAirline() && flightRoundtrip.Outbound.RoundtripPrice > 0 {
