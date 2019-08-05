@@ -26,7 +26,55 @@ func SkiplaggedFlightsProvider() flights.FlightsProvider {
 	return &skiplaggedProvider{}
 }
 
-func (this *skiplaggedProvider) SearchFlight(from string, to string, departDate time.Time, flights chan<- []flights.FlightTrip) {
+func (this *skiplaggedProvider) SearchOneway(from string, to string, departDate time.Time, flights chan<- []flights.FlightTrip) {
+
+	channel := make(chan api.Response)
+
+	this.search(from, to, departDate.Format("2006-01-02"), "", channel)
+
+	response := <-channel
+	shared.ErrorHandler(response.Error)
+
+	var skiplaggedResponse skiplaggedSearchResponse
+
+	err := json.Unmarshal([]byte(response.Body), &skiplaggedResponse)
+	shared.ErrorHandler(err)
+
+	flights <- skiplaggedResponse.GetOnewayFlights()
+}
+
+func (this *skiplaggedProvider) SearchRoundtrip(from string, to string, departDate time.Time, returnDate time.Time, flights chan<- []flights.FlightRoundtrip) {
+
+	channel := make(chan api.Response)
+
+	this.search(from, to, departDate.Format("2006-01-02"), returnDate.Format("2006-01-02"), channel)
+
+	response := <-channel
+	shared.ErrorHandler(response.Error)
+
+	var skiplaggedResponse skiplaggedSearchResponse
+
+	err := json.Unmarshal([]byte(response.Body), &skiplaggedResponse)
+	shared.ErrorHandler(err)
+
+	flights <- skiplaggedResponse.GetRoundtripFlights()
+}
+
+func (this *skiplaggedProvider) SearchOnewaySync(from string, to string, departDate time.Time) []flights.FlightTrip {
+
+	flights := make(chan []flights.FlightTrip)
+	go this.SearchOneway(from, to, departDate, flights)
+	return <-flights
+}
+
+func (this *skiplaggedProvider) SearchRoundtripSync(from string, to string, departDate time.Time, returnDate time.Time) []flights.FlightRoundtrip {
+
+	flights := make(chan []flights.FlightRoundtrip)
+	go this.SearchRoundtrip(from, to, departDate, returnDate, flights)
+	return <-flights
+}
+
+func (this *skiplaggedProvider) search(from string, to string, departDate string, returnDate string, response chan<- api.Response) {
 
 	request, err := api.NewRequest(APIBaseURL)
 	shared.ErrorHandler(err)
@@ -34,26 +82,9 @@ func (this *skiplaggedProvider) SearchFlight(from string, to string, departDate 
 	request.Endpoint(APISearchEndpoint)
 	request.Set("from", from)
 	request.Set("to", to)
-	request.Set("depart", departDate.Format("2006-01-02"))
+	request.Set("depart", departDate)
+	request.Set("return", returnDate)
 	request.Set("sort", "cost")
 
-	channel := make(chan api.Response)
-
-	go request.Get(channel)
-
-	response := <-channel
-	shared.ErrorHandler(response.Error)
-
-	var skiplaggedResponse skiplaggedSearchResponse
-
-	err = json.Unmarshal([]byte(response.Body), &skiplaggedResponse)
-
-	flights <- skiplaggedResponse.getDepartFlights()
-}
-
-func (this *skiplaggedProvider) SearchFlightSync(from string, to string, departDate time.Time) []flights.FlightTrip {
-
-	flights := make(chan []flights.FlightTrip)
-	go this.SearchFlight(from, to, departDate, flights)
-	return <-flights
+	go request.Get(response)
 }

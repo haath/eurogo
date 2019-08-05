@@ -6,7 +6,9 @@ import (
 
 // FlightsProvider is the interface for objects
 type FlightsProvider interface {
-	SearchFlight(from string, to string, departDate time.Time, flights chan<- []FlightTrip)
+	SearchOneway(from string, to string, departDate time.Time, flights chan<- []FlightTrip)
+	SearchRoundtrip(from string, to string, departDate time.Time, returnDate time.Time, flights chan<- []FlightRoundtrip)
 
-	SearchFlightSync(from string, to string, departDate time.Time) []FlightTrip
+	SearchOnewaySync(from string, to string, departDate time.Time) []FlightTrip
+	SearchRoundtripSync(from string, to string, departDate time.Time, returnDate time.Time) []FlightRoundtrip
 }

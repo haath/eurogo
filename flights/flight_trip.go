@@ -9,6 +9,7 @@ import (
 type FlightTrip struct {
 	shared.Trip
 	Price float64 `json:"price"`
+	RoundtripPrice float64 `json:"roundtrip_price"`
 }
 
 func (flightTrip *FlightTrip) GetLegSummaryString() string {

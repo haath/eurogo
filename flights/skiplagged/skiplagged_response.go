@@ -14,31 +14,68 @@ type skiplaggedSearchResponse struct {
 	Duration float64                  `json:"duration"`
 }
 
-func (resp *skiplaggedSearchResponse) getDepartFlights() []flights.FlightTrip {
+func (resp *skiplaggedSearchResponse) GetOnewayFlights() []flights.FlightTrip {
 
-	return resp.getFlights(false)
+	return resp.getOutboundFlights(false)
 }
 
-func (resp *skiplaggedSearchResponse) getReturnFlights() []flights.FlightTrip {
+func (resp *skiplaggedSearchResponse) GetRoundtripFlights() []flights.FlightRoundtrip {
 
-	return resp.getFlights(true)
+	outbound := resp.getOutboundFlights(true)
+	inbound := resp.getInboundFlights()
+
+	var roundtrips []flights.FlightRoundtrip
+
+	for _, outboundFlight := range outbound {
+
+		for _, inboundFlight := range inbound {
+
+			roundtripFlight := flights.FlightRoundtrip{
+				Outbound: outboundFlight,
+				Inbound:  inboundFlight,
+			}
+
+			roundtrips = append(roundtrips, roundtripFlight)
+		}
+	}
+
+	return roundtrips
 }
 
-func (resp *skiplaggedSearchResponse) getFlights(returning bool) []flights.FlightTrip {
+func (resp *skiplaggedSearchResponse) getOutboundFlights(partOfRoundtrip bool) []flights.FlightTrip {
+
+	return resp.getFlights(false, partOfRoundtrip)
+}
+
+func (resp *skiplaggedSearchResponse) getInboundFlights() []flights.FlightTrip {
+
+	return resp.getFlights(true, false)
+}
+
+func (resp *skiplaggedSearchResponse) getFlights(inbound bool, partOfRoundtrip bool) []flights.FlightTrip {
 
 	var flightList []flights.FlightTrip
 
 	flightRange := resp.Depart
-	if returning {
+	if inbound {
 		flightRange = resp.Return
 	}
 
 	for _, flight := range flightRange {
 
 		key := flight[3].(string)
-		price := math.Round(flight[0].([]interface{})[0].(float64) / 100)
 
-		flightTrip := flights.FlightTrip{Price: price}
+		flightTrip := flights.FlightTrip{}
+
+		if !inbound && partOfRoundtrip {
+
+			flightTrip.Price = math.Round(flight[1].([]interface{})[0].(float64) / 100)
+			flightTrip.RoundtripPrice = math.Round(flight[0].([]interface{})[0].(float64) / 100)
+
+		} else {
+
+			flightTrip.Price = math.Round(flight[0].([]interface{})[0].(float64) / 100)
+		}
 
 		legs := resp.Flights[key][0].([]interface{})
 

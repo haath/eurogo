@@ -29,7 +29,14 @@ func (cmd *FlightCommand) Execute(args []string) error {
 
 	flightList = cmd.SortAndFilter(flightList)
 
-	RenderFlightsTable(flightList)
+	if Parameters.JSON {
+
+		RenderFlightsJSON(flightList)
+		
+	} else {
+
+		RenderFlightsTable(flightList)
+	}
 
 	return nil
 }
@@ -90,7 +97,7 @@ func GetFlightsForDates(from string, to string, dates []time.Time) []flights.Fli
 		channel := make(chan []flights.FlightTrip)
 		requestChannels = append(requestChannels, channel)
 
-		go provider.SearchFlight(from, to, date, channel)
+		go provider.SearchOneway(from, to, date, channel)
 	}
 
 	for _, channel := range requestChannels {
