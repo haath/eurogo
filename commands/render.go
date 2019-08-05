@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/jedib0t/go-pretty/table"
+	"github.com/jedib0t/go-pretty/text"
 )
 
 func RenderFlightsTable(flightList []*flights.FlightTrip) {
@@ -16,6 +17,13 @@ func RenderFlightsTable(flightList []*flights.FlightTrip) {
 	currencySymbol := api.CurrencySymbols[Parameters.Currency]
 
 	t := initWriter()
+	t.SetColumnConfigs([]table.ColumnConfig{
+		{
+			Name: "Price",
+			Align: text.AlignRight,
+		}
+	})
+
 	t.AppendHeader(table.Row{"Price", "Length", "Date", "Departure", "Arrival", "Trip", "Stops"})
 
 	for _, flight := range flightList {
