@@ -32,30 +32,65 @@ func RenderFlightsTable(flightList []flights.FlightTrip) {
 		},
 	})
 
-	t.AppendHeader(table.Row{"Airline", "Price", "Length", "Date", "Departure", "Arrival", "Trip", "Stops"})
+	t.AppendHeader(table.Row{"Price", "Airline", "Length", "Date", "Departure", "Arrival", "Trip", "Stops"})
 
 	for _, flight := range flightList {
 
 		price := math.Round(flight.Price * currencyRate)
 		priceFormatted := fmt.Sprintf("%v%s", price, currencySymbol)
-		departureDate := flight.Departs().Format("Mon 02/01")
-		departureTime := flight.Departs().Format("15:04")
-		arrivalDate := flight.Arrives().Format("Mon 02/01")
-		arrivalTime := flight.Arrives().Format("15:04")
-
-		if arrivalDate != departureDate {
-			arrivalTime = arrivalTime + " (+1)"
-		}
 
 		t.AppendRow([]interface{}{
-			flight.GetAirline(),
 			priceFormatted,
+			flight.GetAirline(),
 			flight.GetDurationFormatted(),
-			departureDate,
-			departureTime,
-			arrivalTime,
+			flight.DepartureDateFormatted(),
+			flight.DepartureTimeFormatted(),
+			flight.ArrivalTimeFormatted(),
 			flight.GetLegSummaryString(),
 			flight.GetStops(),
+		})
+	}
+
+	t.Render()
+}
+
+func RenderRoundtripsTable(flightList []flights.FlightRoundtrip) {
+
+	currencyRate := getCurrencyRate()
+	currencySymbol := api.CurrencySymbols[Parameters.Currency]
+
+	t := initWriter()
+	t.SetColumnConfigs([]table.ColumnConfig{
+		{
+			Name:  "Price",
+			Align: text.AlignRight,
+		},
+		{
+			Name:  "Length",
+			Align: text.AlignRight,
+		},
+	})
+
+	t.AppendHeader(table.Row{"Price", "Airline", "Depart", "Outbound Trip", "Length", "Airline", "Return", "InboundTrip", "Length"})
+
+	for _, roundtrip := range flightList {
+
+		price := math.Round(roundtrip.GetRoundtripPrice() * currencyRate)
+		priceFormatted := fmt.Sprintf("%v%s", price, currencySymbol)
+
+		outbound := roundtrip.Outbound
+		inbound := roundtrip.Inbound
+
+		t.AppendRow([]interface{}{
+			priceFormatted,
+			outbound.GetAirline(),
+			outbound.DepartureDateFormatted(),
+			outbound.GetLegSummaryStringWithTimes(),
+			outbound.GetDurationFormatted(),
+			inbound.GetAirline(),
+			inbound.DepartureDateFormatted(),
+			inbound.GetLegSummaryStringWithTimes(),
+			inbound.GetDurationFormatted(),
 		})
 	}
 
@@ -116,6 +151,13 @@ func RenderFlightsMonth(flightList []flights.FlightTrip) {
 }
 
 func RenderFlightsJSON(flightList []flights.FlightTrip) {
+
+	flightsJSON, err := json.MarshalIndent(flightList, "", "    ")
+	shared.ErrorHandler(err)
+	log.Println(string(flightsJSON))
+}
+
+func RenderRoundtripsJSON(flightList []flights.FlightRoundtrip) {
 
 	flightsJSON, err := json.MarshalIndent(flightList, "", "    ")
 	shared.ErrorHandler(err)

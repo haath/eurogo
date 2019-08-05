@@ -4,16 +4,20 @@ import (
 	"eurogo/flights"
 	"eurogo/flights/skiplagged"
 	"eurogo/shared"
+	"fmt"
 	"log"
 	"time"
 )
 
 type FlightCommand struct {
 	SearchFilters
-	Args     flightPositionalArgs `positional-args:"1" required:"1"`
-	OnDates  []string             `long:"on" description:"Add an exact date to the search range."`
-	FromDate string               `long:"from" description:"Set a starting date for the search range."`
-	ToDate   string               `long:"to" description:"Set an end date for the search range."`
+	Args           flightPositionalArgs `positional-args:"1" required:"1"`
+	DepartOnDates  []string             `long:"depart-on" description:"Add an exact date to the search range for the outbound flight."`
+	DepartFromDate string               `long:"depart-from" description:"Set a starting date for the search range for the outbound flight."`
+	DepartToDate   string               `long:"depart-to" description:"Set an end date for the search range for the outbound flight."`
+	ReturnOnDates  []string             `long:"return-on" description:"Add an exact date to the search range for the returning flight."`
+	ReturnFromDate string               `long:"return-from" description:"Set a starting date for the search range for the returning flight."`
+	ReturnToDate   string               `long:"return-to" description:"Set an end date for the search range for the returning flight."`
 }
 
 type flightPositionalArgs struct {
@@ -23,44 +27,78 @@ type flightPositionalArgs struct {
 
 func (cmd *FlightCommand) Execute(args []string) error {
 
-	dates := cmd.getDates()
+	outboundDates := getDateRange(cmd.DepartOnDates, cmd.DepartFromDate, cmd.DepartToDate)
+	returnDates := getDateRange(cmd.ReturnOnDates, cmd.ReturnFromDate, cmd.ReturnToDate)
 
-	flightList := GetFlightsForDates(cmd.Args.From, cmd.Args.To, dates)
+	if len(outboundDates) == 0 {
 
-	flightList = cmd.SortAndFilter(flightList)
+		return fmt.Errorf("Please specify outbound dates.")
+	}
 
-	if Parameters.JSON {
+	if len(returnDates) == 0 {
 
-		RenderFlightsJSON(flightList)
-		
+		cmd.executeOneway(outboundDates)
+
 	} else {
 
-		RenderFlightsTable(flightList)
+		cmd.executeRoundtrip(outboundDates, returnDates)
 	}
 
 	return nil
 }
 
-func (cmd *FlightCommand) getDates() []time.Time {
+func (cmd *FlightCommand) executeOneway(outboundDates []time.Time) {
+
+	flightList := GetOnewayFlightsForDates(cmd.Args.From, cmd.Args.To, outboundDates)
+
+	flightList = cmd.SortAndFilterOneway(flightList)
+
+	if Parameters.JSON {
+
+		RenderFlightsJSON(flightList)
+
+	} else {
+
+		RenderFlightsTable(flightList)
+	}
+}
+
+func (cmd *FlightCommand) executeRoundtrip(outboundDates, inboundDates []time.Time) {
+
+	flightList := GetRoundtripFlightsForDates(cmd.Args.From, cmd.Args.To, outboundDates, inboundDates)
+
+	flightList = cmd.SortAndFilterRoundtrip(flightList)
+
+	if Parameters.JSON {
+
+		RenderRoundtripsJSON(flightList)
+
+	} else {
+
+		RenderRoundtripsTable(flightList)
+	}
+}
+
+func getDateRange(on []string, from, to string) []time.Time {
 
 	var dates []time.Time
 
 	// Add exact dates.
-	for _, dateString := range cmd.OnDates {
+	for _, dateString := range on {
 
 		date := shared.ParseInputDate(dateString)
 		dates = append(dates, date)
 	}
 
 	// Add range of dates.
-	if cmd.FromDate != "" {
+	if from != "" {
 
 		var datesToAdd []time.Time
-		fromDate := shared.ParseInputDate(cmd.FromDate)
+		fromDate := shared.ParseInputDate(from)
 
-		if cmd.ToDate != "" {
+		if to != "" {
 
-			toDate := shared.ParseInputDate(cmd.ToDate)
+			toDate := shared.ParseInputDate(to)
 			datesToAdd = shared.GetDatesBetween(fromDate, toDate)
 		} else {
 			log.Fatal("The --from parameter requires a --to.")
@@ -85,7 +123,7 @@ func (cmd *FlightCommand) getDates() []time.Time {
 	return uniqueDates
 }
 
-func GetFlightsForDates(from string, to string, dates []time.Time) []flights.FlightTrip {
+func GetOnewayFlightsForDates(from string, to string, dates []time.Time) []flights.FlightTrip {
 
 	var flightList []flights.FlightTrip
 	var requestChannels []chan []flights.FlightTrip
@@ -108,4 +146,33 @@ func GetFlightsForDates(from string, to string, dates []time.Time) []flights.Fli
 	}
 
 	return flightList
+}
+
+func GetRoundtripFlightsForDates(from string, to string, outboundDates []time.Time, inboundDates []time.Time) []flights.FlightRoundtrip {
+
+	var roundtripList []flights.FlightRoundtrip
+	var requestChannels []chan []flights.FlightRoundtrip
+
+	provider := skiplagged.SkiplaggedFlightsProvider()
+
+	for _, outboundDate := range outboundDates {
+
+		for _, inboundDate := range inboundDates {
+
+			channel := make(chan []flights.FlightRoundtrip)
+			requestChannels = append(requestChannels, channel)
+
+			go provider.SearchRoundtrip(from, to, outboundDate, inboundDate, channel)
+		}
+
+	}
+
+	for _, channel := range requestChannels {
+
+		roundtrips := <-channel
+
+		roundtripList = append(roundtripList, roundtrips...)
+	}
+
+	return roundtripList
 }

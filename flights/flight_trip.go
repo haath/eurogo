@@ -8,7 +8,7 @@ import (
 
 type FlightTrip struct {
 	shared.Trip
-	Price float64 `json:"price"`
+	Price          float64 `json:"price"`
 	RoundtripPrice float64 `json:"roundtrip_price"`
 }
 
@@ -34,6 +34,14 @@ func (flightTrip *FlightTrip) GetLegSummaryString() string {
 		previous = flightLeg
 	}
 	return str
+}
+
+func (flightTrip *FlightTrip) GetLegSummaryStringWithTimes() string {
+
+	departureTime := flightTrip.DepartureTimeFormatted()
+	arrivalTime := flightTrip.ArrivalTimeFormatted()
+
+	return fmt.Sprintf("%s %s %s", departureTime, flightTrip.GetLegSummaryString(), arrivalTime)
 }
 
 func (flightTrip *FlightTrip) GetAirline() string {

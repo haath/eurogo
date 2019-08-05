@@ -22,9 +22,9 @@ func (cmd *FlightMonthCommand) Execute(args []string) error {
 
 	dates := cmd.getDates()
 
-	flightList := GetFlightsForDates(cmd.Args.From, cmd.Args.To, dates)
+	flightList := GetOnewayFlightsForDates(cmd.Args.From, cmd.Args.To, dates)
 
-	flightList = cmd.SortAndFilter(flightList)
+	flightList = cmd.SortAndFilterOneway(flightList)
 
 	flightList = toDailyCheapest(flightList)
 

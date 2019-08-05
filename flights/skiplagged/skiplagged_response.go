@@ -67,14 +67,16 @@ func (resp *skiplaggedSearchResponse) getFlights(inbound bool, partOfRoundtrip b
 
 		flightTrip := flights.FlightTrip{}
 
-		if !inbound && partOfRoundtrip {
+		priceArr := flight[0].([]interface{})
 
-			flightTrip.Price = math.Round(flight[1].([]interface{})[0].(float64) / 100)
-			flightTrip.RoundtripPrice = math.Round(flight[0].([]interface{})[0].(float64) / 100)
+		if !inbound && partOfRoundtrip && len(priceArr) > 1 {
+
+			flightTrip.Price = math.Round(priceArr[1].(float64) / 100)
+			flightTrip.RoundtripPrice = math.Round(priceArr[0].(float64) / 100)
 
 		} else {
 
-			flightTrip.Price = math.Round(flight[0].([]interface{})[0].(float64) / 100)
+			flightTrip.Price = math.Round(priceArr[0].(float64) / 100)
 		}
 
 		legs := resp.Flights[key][0].([]interface{})
