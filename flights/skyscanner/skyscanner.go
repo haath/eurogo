@@ -22,7 +22,7 @@ func SkyscannerAirportsProvider() flights.AirportsProvider {
 	return &skyscannerProvider{}
 }
 
-func (skyscanner *skyscannerProvider) SearchAirports(query string, airports chan<- []*flights.Airport) {
+func (skyscanner *skyscannerProvider) SearchAirports(query string, airports chan<- []flights.Airport) {
 
 	request, err := api.NewRequest(APIBaseURL)
 	shared.ErrorHandler(err)
@@ -46,9 +46,9 @@ func (skyscanner *skyscannerProvider) SearchAirports(query string, airports chan
 	airports <- skyscannerResponse.getAirports()
 }
 
-func (skyscanner *skyscannerProvider) SearchAirportsSync(query string) []*flights.Airport {
+func (skyscanner *skyscannerProvider) SearchAirportsSync(query string) []flights.Airport {
 
-	airports := make(chan []*flights.Airport)
+	airports := make(chan []flights.Airport)
 	go skyscanner.SearchAirports(query, airports)
 	return <-airports
 }

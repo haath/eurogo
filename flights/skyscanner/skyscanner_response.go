@@ -15,9 +15,9 @@ type skyscannerAirport struct {
 	CountryID string `json:"CountryId"`
 }
 
-func (resp *skyscannerAirportsResponse) getAirports() []*flights.Airport {
+func (resp *skyscannerAirportsResponse) getAirports() []flights.Airport {
 
-	var airports []*flights.Airport
+	var airports []flights.Airport
 	var airportNameChannels []chan string
 
 	for _, airportData := range *resp {
@@ -35,12 +35,12 @@ func (resp *skyscannerAirportsResponse) getAirports() []*flights.Airport {
 
 		go skiplagged.GetAirportName(airport.Code, airportNameChannel)
 
-		airports = append(airports, &airport)
+		airports = append(airports, airport)
 	}
 
-	for i, airport := range airports {
+	for i := range airports {
 
-		airport.Name = <-airportNameChannels[i]
+		airports[i].Name = <-airportNameChannels[i]
 	}
 
 	return airports

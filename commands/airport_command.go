@@ -21,9 +21,16 @@ func (cmd *AirportCommand) Execute(args []string) error {
 
 	airports := provider.SearchAirportsSync(query)
 
-	for _, airport := range airports {
+	if Parameters.JSON {
 
-		log.Println(airport)
+		RenderAirportsJSON(airports)
+
+	} else {
+
+		for _, airport := range airports {
+
+			log.Println(airport)
+		}
 	}
 
 	return nil

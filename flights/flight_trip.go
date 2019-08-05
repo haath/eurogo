@@ -35,6 +35,16 @@ func (flightTrip *FlightTrip) GetLegSummaryString() string {
 	return str
 }
 
+func (flightTrip *FlightTrip) GetAirline() string {
+
+	return flightTrip.Legs[0].(*FlightLeg).Airline
+}
+
+func (flightTrip *FlightTrip) GetStops() int {
+
+	return len(flightTrip.Legs) - 1
+}
+
 func (flightTrip *FlightTrip) String() string {
 
 	var str string

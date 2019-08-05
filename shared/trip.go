@@ -6,7 +6,7 @@ import (
 )
 
 type Trip struct {
-	Legs []TripLeg
+	Legs []TripLeg `json:"legs"`
 }
 
 func (this *Trip) AddLeg(leg TripLeg) {

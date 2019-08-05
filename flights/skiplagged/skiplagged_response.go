@@ -7,25 +7,26 @@ import (
 )
 
 type skiplaggedSearchResponse struct {
+	Airlines map[string]string        `json:"airlines"`
 	Flights  map[string][]interface{} `json:"flights"`
 	Depart   [][]interface{}          `json:"depart"`
 	Return   [][]interface{}          `json:"return"`
 	Duration float64                  `json:"duration"`
 }
 
-func (resp *skiplaggedSearchResponse) getDepartFlights() []*flights.FlightTrip {
+func (resp *skiplaggedSearchResponse) getDepartFlights() []flights.FlightTrip {
 
 	return resp.getFlights(false)
 }
 
-func (resp *skiplaggedSearchResponse) getReturnFlights() []*flights.FlightTrip {
+func (resp *skiplaggedSearchResponse) getReturnFlights() []flights.FlightTrip {
 
 	return resp.getFlights(true)
 }
 
-func (resp *skiplaggedSearchResponse) getFlights(returning bool) []*flights.FlightTrip {
+func (resp *skiplaggedSearchResponse) getFlights(returning bool) []flights.FlightTrip {
 
-	var flightList []*flights.FlightTrip
+	var flightList []flights.FlightTrip
 
 	flightRange := resp.Depart
 	if returning {
@@ -48,6 +49,7 @@ func (resp *skiplaggedSearchResponse) getFlights(returning bool) []*flights.Flig
 			flightLeg := flights.FlightLeg{}
 
 			flightLeg.FlightNumber = legData[0].(string)
+			flightLeg.Airline = resp.getAirlineName(flightLeg.FlightNumber)
 			flightLeg.FromAirport = legData[1].(string)
 			flightLeg.ToAirport = legData[3].(string)
 			flightLeg.Departure = shared.ParseFlightTime(legData[2].(string))
@@ -56,8 +58,14 @@ func (resp *skiplaggedSearchResponse) getFlights(returning bool) []*flights.Flig
 			flightTrip.AddLeg(&flightLeg)
 		}
 
-		flightList = append(flightList, &flightTrip)
+		flightList = append(flightList, flightTrip)
 	}
 
 	return flightList
+}
+
+func (resp *skiplaggedSearchResponse) getAirlineName(flightNumber string) string {
+
+	airlineCode := flightNumber[0:2]
+	return resp.Airlines[airlineCode]
 }

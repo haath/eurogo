@@ -26,7 +26,7 @@ func SkiplaggedFlightsProvider() flights.FlightsProvider {
 	return &skiplaggedProvider{}
 }
 
-func (this *skiplaggedProvider) SearchFlight(from string, to string, departDate time.Time, flights chan<- []*flights.FlightTrip) {
+func (this *skiplaggedProvider) SearchFlight(from string, to string, departDate time.Time, flights chan<- []flights.FlightTrip) {
 
 	request, err := api.NewRequest(APIBaseURL)
 	shared.ErrorHandler(err)
@@ -51,9 +51,9 @@ func (this *skiplaggedProvider) SearchFlight(from string, to string, departDate 
 	flights <- skiplaggedResponse.getDepartFlights()
 }
 
-func (this *skiplaggedProvider) SearchFlightSync(from string, to string, departDate time.Time) []*flights.FlightTrip {
+func (this *skiplaggedProvider) SearchFlightSync(from string, to string, departDate time.Time) []flights.FlightTrip {
 
-	flights := make(chan []*flights.FlightTrip)
+	flights := make(chan []flights.FlightTrip)
 	go this.SearchFlight(from, to, departDate, flights)
 	return <-flights
 }

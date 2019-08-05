@@ -78,16 +78,16 @@ func (cmd *FlightCommand) getDates() []time.Time {
 	return uniqueDates
 }
 
-func GetFlightsForDates(from string, to string, dates []time.Time) []*flights.FlightTrip {
+func GetFlightsForDates(from string, to string, dates []time.Time) []flights.FlightTrip {
 
-	var flightList []*flights.FlightTrip
-	var requestChannels []chan []*flights.FlightTrip
+	var flightList []flights.FlightTrip
+	var requestChannels []chan []flights.FlightTrip
 
 	provider := skiplagged.SkiplaggedFlightsProvider()
 
 	for _, date := range dates {
 
-		channel := make(chan []*flights.FlightTrip)
+		channel := make(chan []flights.FlightTrip)
 		requestChannels = append(requestChannels, channel)
 
 		go provider.SearchFlight(from, to, date, channel)

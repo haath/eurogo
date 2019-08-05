@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 )
 
 type Request interface {
@@ -46,7 +47,9 @@ func (this *request) Get(result chan<- Response) {
 
 	fullURL := this.query.String()
 
-	log.Println(fullURL)
+	if os.Getenv("EUROGO_DEBUG") == "true" {
+		log.Println(fullURL)
+	}
 
 	resp, err := http.Get(fullURL)
 	if err != nil {
