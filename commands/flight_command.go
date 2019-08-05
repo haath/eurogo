@@ -9,6 +9,7 @@ import (
 )
 
 type FlightCommand struct {
+	SearchFilters
 	Args     flightPositionalArgs `positional-args:"1" required:"1"`
 	OnDates  []string             `long:"on" description:"Add an exact date to the search range."`
 	FromDate string               `long:"from" description:"Set a starting date for the search range."`
@@ -26,10 +27,9 @@ func (cmd *FlightCommand) Execute(args []string) error {
 
 	flightList := GetFlightsForDates(cmd.Args.From, cmd.Args.To, dates)
 
-	for _, flight := range flightList {
+	flightList = cmd.SortAndFilter(flightList)
 
-		log.Println(flight)
-	}
+	RenderFlightsTable(flightList)
 
 	return nil
 }
