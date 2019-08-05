@@ -6,8 +6,9 @@ import (
 )
 
 type SearchFilters struct {
-	Count    uint   `short:"c" long:"count" description:"The maximum number of results to return."`
-	MaxStops []uint `long:"max-stops" description:"The maximum amount of stops in the trip."`
+	Count            uint   `short:"c" long:"count" description:"The maximum number of results to return."`
+	MaxStops         []uint `long:"max-stops" description:"The maximum amount of stops in the trip."`
+	MaxDurationHours uint   `long:"max-hours" description:"The maximum duration for flight trips in hours."`
 }
 
 func (filters *SearchFilters) SortAndFilterOneway(flightList []flights.FlightTrip) []flights.FlightTrip {
@@ -63,7 +64,13 @@ func (filters *SearchFilters) isValid(flight flights.FlightTrip) bool {
 		maxStops = int(filters.MaxStops[len(filters.MaxStops)-1])
 	}
 
-	return flight.GetStops() <= maxStops
+	maxDurationHours := 0xFF
+	if filters.MaxDurationHours > 0 {
+		maxDurationHours = int(filters.MaxDurationHours)
+	}
+
+	return flight.GetStops() <= maxStops &&
+		flight.GetDurationInHours() <= maxDurationHours
 }
 
 type SortFlights []flights.FlightTrip

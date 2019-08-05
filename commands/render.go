@@ -71,7 +71,7 @@ func RenderRoundtripsTable(flightList []flights.FlightRoundtrip) {
 		},
 	})
 
-	t.AppendHeader(table.Row{"Price", "Airline", "Depart", "Outbound Trip", "Length", "Airline", "Return", "InboundTrip", "Length"})
+	t.AppendHeader(table.Row{"Price", "Airline", "Depart", "Outbound Trip", "Length", "Airline", "Return", "Inbound Trip", "Length"})
 
 	for _, roundtrip := range flightList {
 
