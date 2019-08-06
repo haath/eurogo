@@ -112,35 +112,47 @@ func RenderFlightsMonth(flightList []flights.FlightTrip) {
 
 	var tableRows []table.Row
 	var currentRow table.Row
+	colIndex := 0
+
+	changeRow := func() {
+
+		tableRows = append(tableRows, currentRow)
+		currentRow = table.Row{}
+		colIndex = 0
+	}
 
 	for _, flight := range flightList {
+
+		if colIndex == 7 {
+
+			changeRow()
+		}
+
+		for headerRow[colIndex] != flight.Departs().Format("Mon") {
+
+			currentRow = append(currentRow, "")
+			colIndex++
+
+			if colIndex == 7 {
+				changeRow()
+			}
+		}
 
 		price := math.Round(flight.Price * currencyRate)
 		priceFormatted := fmt.Sprintf("%v%s", price, currencySymbol)
 
 		dayOfMonth := flight.Departs().Day()
-		dayOfweek := flight.Departs().Weekday()
+		dayOfWeek := flight.Departs().Weekday()
 
 		cellFormatted := fmt.Sprintf("%d\n%s", dayOfMonth, priceFormatted)
 
 		currentRow = append(currentRow, cellFormatted)
 
-		if dayOfweek == time.Sunday {
+		if dayOfWeek == time.Sunday {
 
-			tableRows = append(tableRows, currentRow)
-			currentRow = table.Row{}
+			changeRow()
 		}
-	}
-
-	// Fill gaps in rows
-	for i := range tableRows {
-		for len(tableRows[i]) < 7 {
-			if i == 0 {
-				tableRows[i] = append(table.Row{""}, tableRows[i]...)
-			} else {
-				tableRows[i] = append(tableRows[i], "")
-			}
-		}
+		colIndex++
 	}
 
 	t.AppendRows(tableRows)
