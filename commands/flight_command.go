@@ -55,6 +55,11 @@ func (cmd *FlightCommand) executeOneway(outboundDates []time.Time) {
 
 	flightList = cmd.SortAndFilterOneway(flightList)
 
+	if len(flightList) == 0 {
+
+		log.Fatal("no flights found")
+	}
+
 	if Parameters.JSON {
 
 		RenderJSON(flightList)
@@ -71,6 +76,11 @@ func (cmd *FlightCommand) executeRoundtrip(outboundDates, inboundDates []time.Ti
 
 	flightList = cmd.SortAndFilterRoundtrip(flightList)
 
+	if len(flightList) == 0 {
+
+		log.Fatal("no flights found")
+	}
+
 	if cmd.Calendar {
 
 		calendar := RoundtripsToCalendarCheapest(flightList)
@@ -81,7 +91,7 @@ func (cmd *FlightCommand) executeRoundtrip(outboundDates, inboundDates []time.Ti
 
 		} else {
 
-			RenderRoundtripCalendar(calendar)
+			RenderRoundtripCalendar(calendar, outboundDates, inboundDates)
 		}
 
 	} else {
@@ -138,6 +148,7 @@ func getDateRange(on []string, from, to string) []time.Time {
 
 		uniqueDates = append(uniqueDates, date)
 	}
+	sort.Sort(sortDates(uniqueDates))
 	return uniqueDates
 }
 
@@ -255,3 +266,9 @@ func (a sortInboundRowByDate) Less(i, j int) bool {
 	return a[i].Inbound.Departs().Sub(a[j].Inbound.Departs()) < 0
 }
 func (a sortInboundRowByDate) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
+
+type sortDates []time.Time
+
+func (a sortDates) Len() int           { return len(a) }
+func (a sortDates) Less(i, j int) bool { return a[i].Sub(a[j]) < 0 }
+func (a sortDates) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }

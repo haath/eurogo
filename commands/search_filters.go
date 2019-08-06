@@ -70,7 +70,7 @@ func (filters *SearchFilters) isValid(flight flights.FlightTrip) bool {
 	}
 
 	return flight.GetStops() <= maxStops &&
-		flight.GetDurationInHours() <= maxDurationHours
+		flight.GetDurationInMinutes() <= (maxDurationHours*60)
 }
 
 type SortFlights []flights.FlightTrip

@@ -147,19 +147,20 @@ func RenderFlightsMonth(flightList []flights.FlightTrip) {
 	t.Render()
 }
 
-func RenderRoundtripCalendar(calendar [][]flights.FlightRoundtrip) {
+func RenderRoundtripCalendar(calendar [][]flights.FlightRoundtrip, outboundDates, inboundDates []time.Time) {
 
 	currencyRate := getCurrencyRate()
 	currencySymbol := api.CurrencySymbols[Parameters.Currency]
 
 	t := initWriter()
 	t.Style().Options.SeparateRows = true
+	t.Style().Format.Header = text.FormatDefault
 
 	// Create the header row out of the inbound trip dates.
 	headerRow := table.Row{"Outbound\\Inbound"}
-	for _, roundtrip := range calendar[0] {
+	for _, inboundDate := range inboundDates {
 
-		header := roundtrip.Inbound.DepartureDateFormatted()
+		header := inboundDate.Format("Mon 02/01")
 		headerRow = append(headerRow, header)
 	}
 
@@ -167,12 +168,27 @@ func RenderRoundtripCalendar(calendar [][]flights.FlightRoundtrip) {
 
 	t.AppendHeader(headerRow)
 
+	rowIndex := 1
 	for _, outboundRow := range calendar {
 
 		// First column is the outbound date
-		row := table.Row{outboundRow[0].Outbound.DepartureDateFormatted()}
+		outboundDate := outboundRow[0].Outbound.DepartureDateFormatted()
+		for outboundDates[rowIndex-1].Format("Mon 02/01") != outboundDate {
 
+			t.AppendRow(table.Row{outboundDates[rowIndex-1].Format("Mon 02/01")})
+			rowIndex++
+		}
+
+		row := table.Row{outboundDate}
+
+		colIndex := 1
 		for _, roundtrip := range outboundRow {
+
+			inboundDate := roundtrip.Inbound.DepartureDateFormatted()
+			for headerRow[colIndex] != inboundDate {
+				row = append(row, "")
+				colIndex++
+			}
 
 			price := math.Round(roundtrip.GetRoundtripPrice() * currencyRate)
 			priceFormatted := fmt.Sprintf("%v%s", price, currencySymbol)
@@ -180,9 +196,12 @@ func RenderRoundtripCalendar(calendar [][]flights.FlightRoundtrip) {
 			cellFormatted := fmt.Sprintf("%s\n%s", priceFormatted, roundtrip.GetLongestDurationFormatted())
 
 			row = append(row, cellFormatted)
+
+			colIndex++
 		}
 
 		t.AppendRow(row)
+		rowIndex++
 	}
 
 	t.Render()
