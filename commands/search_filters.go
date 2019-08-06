@@ -83,6 +83,6 @@ type SortRoundtrips []flights.FlightRoundtrip
 
 func (a SortRoundtrips) Len() int { return len(a) }
 func (a SortRoundtrips) Less(i, j int) bool {
-	return a[i].GetRoundtripPrice() < a[j].GetRoundtripPrice() || (a[i].GetRoundtripPrice() == a[j].GetRoundtripPrice() && a[i].GetDurationInSumMinutes() < a[j].GetDurationInSumMinutes())
+	return a[i].IsBetterThan(&a[j])
 }
 func (a SortRoundtrips) Swap(i, j int) { a[i], a[j] = a[j], a[i] }

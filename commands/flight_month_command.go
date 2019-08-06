@@ -30,7 +30,7 @@ func (cmd *FlightMonthCommand) Execute(args []string) error {
 
 	if Parameters.JSON {
 
-		RenderFlightsJSON(flightList)
+		RenderJSON(flightList)
 
 	} else {
 
@@ -61,11 +61,11 @@ func (cmd *FlightMonthCommand) getDates() []time.Time {
 
 func toDailyCheapest(flightList []flights.FlightTrip) []flights.FlightTrip {
 
-	datesFlightsMap := make(map[time.Time]flights.FlightTrip)
+	datesFlightsMap := make(map[string]flights.FlightTrip)
 
 	for _, flight := range flightList {
 
-		date := shared.TimeToDate(flight.Departs())
+		date := flight.Departs().Format("2006-01-02")
 
 		if existingFlight, exists := datesFlightsMap[date]; !exists || flight.Price < existingFlight.Price {
 

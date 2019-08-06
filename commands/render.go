@@ -104,14 +104,11 @@ func RenderFlightsMonth(flightList []flights.FlightTrip) {
 
 	t := initWriter()
 	t.Style().Options.SeparateRows = true
-	t.SetColumnConfigs([]table.ColumnConfig{
-		{Name: "Mon", Align: text.AlignCenter}, {Name: "Tue", Align: text.AlignCenter},
-		{Name: "Wed", Align: text.AlignCenter}, {Name: "Thu", Align: text.AlignCenter},
-		{Name: "Fri", Align: text.AlignCenter}, {Name: "Sat", Align: text.AlignCenter},
-		{Name: "Sun", Align: text.AlignCenter},
-	})
 
-	t.AppendHeader(table.Row{"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"})
+	headerRow := table.Row{"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"}
+	t.AppendHeader(headerRow)
+
+	centerAll(&t, headerRow)
 
 	var tableRows []table.Row
 	var currentRow table.Row
@@ -150,25 +147,52 @@ func RenderFlightsMonth(flightList []flights.FlightTrip) {
 	t.Render()
 }
 
-func RenderFlightsJSON(flightList []flights.FlightTrip) {
+func RenderRoundtripCalendar(calendar [][]flights.FlightRoundtrip) {
+
+	currencyRate := getCurrencyRate()
+	currencySymbol := api.CurrencySymbols[Parameters.Currency]
+
+	t := initWriter()
+	t.Style().Options.SeparateRows = true
+
+	// Create the header row out of the inbound trip dates.
+	headerRow := table.Row{"Outbound\\Inbound"}
+	for _, roundtrip := range calendar[0] {
+
+		header := roundtrip.Inbound.DepartureDateFormatted()
+		headerRow = append(headerRow, header)
+	}
+
+	centerAll(&t, headerRow)
+
+	t.AppendHeader(headerRow)
+
+	for _, outboundRow := range calendar {
+
+		// First column is the outbound date
+		row := table.Row{outboundRow[0].Outbound.DepartureDateFormatted()}
+
+		for _, roundtrip := range outboundRow {
+
+			price := math.Round(roundtrip.GetRoundtripPrice() * currencyRate)
+			priceFormatted := fmt.Sprintf("%v%s", price, currencySymbol)
+
+			cellFormatted := fmt.Sprintf("%s\n%s", priceFormatted, roundtrip.GetLongestDurationFormatted())
+
+			row = append(row, cellFormatted)
+		}
+
+		t.AppendRow(row)
+	}
+
+	t.Render()
+}
+
+func RenderJSON(flightList interface{}) {
 
 	flightsJSON, err := json.MarshalIndent(flightList, "", "    ")
 	shared.ErrorHandler(err)
 	log.Println(string(flightsJSON))
-}
-
-func RenderRoundtripsJSON(flightList []flights.FlightRoundtrip) {
-
-	flightsJSON, err := json.MarshalIndent(flightList, "", "    ")
-	shared.ErrorHandler(err)
-	log.Println(string(flightsJSON))
-}
-
-func RenderAirportsJSON(airports []flights.Airport) {
-
-	airportsJSON, err := json.MarshalIndent(airports, "", "    ")
-	shared.ErrorHandler(err)
-	log.Println(string(airportsJSON))
 }
 
 func getCurrencyRate() float64 {
@@ -181,6 +205,24 @@ func getCurrencyRate() float64 {
 	rates := api.GetCurrencyRates("USD")
 
 	return rates[Parameters.Currency]
+}
+
+func centerAll(t *table.Writer, headerRow table.Row) {
+
+	var configList []table.ColumnConfig
+
+	for _, col := range headerRow {
+
+		config := table.ColumnConfig{
+			Name:   col.(string),
+			Align:  text.AlignCenter,
+			VAlign: text.VAlignMiddle,
+		}
+
+		configList = append(configList, config)
+	}
+
+	(*t).SetColumnConfigs(configList)
 }
 
 func initWriter() table.Writer {

@@ -23,7 +23,7 @@ func (cmd *AirportCommand) Execute(args []string) error {
 
 	if Parameters.JSON {
 
-		RenderAirportsJSON(airports)
+		RenderJSON(airports)
 
 	} else {
 

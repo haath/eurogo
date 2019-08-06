@@ -1,6 +1,10 @@
 package flights
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"eurogo/shared"
+	"math"
+)
 
 type FlightRoundtrip struct {
 	Outbound FlightTrip `json:"outbound"`
@@ -8,7 +12,18 @@ type FlightRoundtrip struct {
 }
 
 func (flightRoundtrip *FlightRoundtrip) GetDurationInSumMinutes() int {
+
 	return flightRoundtrip.Outbound.GetDurationInMinutes() + flightRoundtrip.Inbound.GetDurationInMinutes()
+}
+
+func (flightRoundtrip *FlightRoundtrip) GetLongestDurationInMinutes() int {
+
+	return int(math.Max(float64(flightRoundtrip.Outbound.GetDurationInMinutes()), float64(flightRoundtrip.Inbound.GetDurationInMinutes())))
+}
+
+func (flightRoundtrip *FlightRoundtrip) GetLongestDurationFormatted() string {
+
+	return shared.FormatDuration(flightRoundtrip.GetLongestDurationInMinutes())
 }
 
 func (flightRoundtrip *FlightRoundtrip) GetRoundtripPrice() float64 {
@@ -18,6 +33,20 @@ func (flightRoundtrip *FlightRoundtrip) GetRoundtripPrice() float64 {
 		return flightRoundtrip.Outbound.RoundtripPrice
 	}
 	return flightRoundtrip.Outbound.Price + flightRoundtrip.Inbound.Price
+}
+
+func (flightRoundtrip *FlightRoundtrip) IsBetterThan(other *FlightRoundtrip) bool {
+
+	if flightRoundtrip.GetRoundtripPrice() < other.GetRoundtripPrice() {
+
+		return true
+	}
+	if flightRoundtrip.GetRoundtripPrice() == other.GetRoundtripPrice() &&
+		flightRoundtrip.GetDurationInSumMinutes() < other.GetDurationInSumMinutes() {
+
+		return true
+	}
+	return false
 }
 
 func (flightRoundtrip *FlightRoundtrip) sameAirline() bool {
