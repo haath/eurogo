@@ -148,11 +148,11 @@ func RenderFlightsMonth(flightList []flights.FlightTrip) {
 
 		currentRow = append(currentRow, cellFormatted)
 
+		colIndex++
 		if dayOfWeek == time.Sunday {
 
 			changeRow()
 		}
-		colIndex++
 	}
 
 	t.AppendRows(tableRows)
